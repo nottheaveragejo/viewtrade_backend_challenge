@@ -46,20 +46,75 @@ async function runSeed() {
   } catch (err) {
     console.error(err)
     process.exitCode = 1
-  } finally {
-    console.log('closing db connection')
-    await db.close()
-    console.log('db connection closed')
   }
+  // finally {
+  //   console.log('closing db connection')
+  //   await db.close()
+  //   console.log('db connection closed')
+  // }
 }
 
 runSeed()
 
- app.get('/', (req, res) => res.send(top10(data)))
+// app.get('/', (req, res) => res.send(top10(data)))
 
-//  app.get('/data', (req, res) => )
+//all holdings
+app.get('/', async(req, res) => {
+  try{
+    const holdings = await Holdings.findAll()
+    res.send(holdings)
+  }
+  catch(err){
+    console.log(err)
+  }
+})
+
+//specific single holding
+
+app.get('/:id',  async(req, res) => {
+  try{
+    const holding = await Holdings.findAll({
+     where: {
+       id: req.params.id
+     }
+    })
+    res.send(holding)
+  }
+  catch(err){
+    console.log(err)
+  }
+})
+
+//get holding by ticker
+app.get('/ticker/:ticker',  async(req, res) => {
+  try{
+    const holding = await Holdings.findAll({
+     where: {
+       ticker: req.params.ticker
+     }
+    })
+    res.send(holding)
+  }
+  catch(err){
+    console.log(err)
+  }
+})
 
 
+//get holdings by symbol
+// app.get('/:symbol',  async(req, res) => {
+//   try{
+//     const holdingBySymbol = await Holdings.findAll({
+//      where: {
+//        name: req.params.symbol
+//      }
+//     })
+//     res.send(holdingBySymbol )
+//   }
+//   catch(err){
+//     console.log(err)
+//   }
+// })
 
 
 
