@@ -8,26 +8,15 @@ const mongo = require('mongodb')
 const assert = require('assert')
 const app = express()
 const port = 3000
-var MongoClient = require('mongodb').MongoClient;
-let url = 'mongodb://localhost:27017/test'
+const Holdings = require ('./holdingsModel')
+const db = require('./db')
 
 
-// let connection = mysql.createConnection({
-//   port:"80",
-//   host: 'localhost',
-//   user: 'root',
-//   password: '',
-//   database: 'sampleDB'
-// })
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// connection.connect(function(error){
-//   if(error){
-//     console.log(error)
-//   }
-//   else{
-//     console.log('connected')
-//   }
-// })
+
 
 let top10 = function (data){
   let newData = []
@@ -37,37 +26,41 @@ let top10 = function (data){
   return newData
 }
 
-// MongoClient.connect(url, function (err, db) {
-//   if (err) throw err;
-//   let arr = top10(data)
-//   db.collection("holdings").insertMany(arr, function (err, result) {
-//       if (err) throw err;
-//       console.log("Number of documents inserted: " + res.insertedCount);
-//       db.close();
-//   });
+console.log(top10(data)[0])
+async function seed() {
+  await db.sync({force: true})
+  console.log('db synced!')
+  await Promise.all(
+    top10(data).map(element => {
+      return Holdings.create(element)
+    })
+  )
+  console.log(`seeded users`)
+  console.log(`seeded successfully`)
+}
 
-// });
+async function runSeed() {
+  console.log('seeding...')
+  try {
+    await seed()
+  } catch (err) {
+    console.error(err)
+    process.exitCode = 1
+  } finally {
+    console.log('closing db connection')
+    await db.close()
+    console.log('db connection closed')
+  }
+}
 
-//var stringObj = JSON.stringify(top10(data))
-
+runSeed()
 
  app.get('/', (req, res) => res.send(top10(data)))
 
+//  app.get('/data', (req, res) => )
 
 
 
-
-// app.get('/', (req, res) => {
-// // res.send(stringObj)
-//   connection.query("SELECT * FROM holdings", function(error, rows, fields){
-//     if(error){
-//       console.log(error)
-//     }
-//     else{
-//       console.log("Success")
-//     }
-//   })
-// })
 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
