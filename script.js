@@ -3,10 +3,8 @@ let wb = xlsx.readFile("SPY_All_Holdings.xlsx")
 let ws = wb.Sheets['SPY_All_Holdings']
 let data = xlsx.utils.sheet_to_json(ws)
 const express = require('express')
-const mysql = require('mysql')
-const mongo = require('mongodb')
-const assert = require('assert')
 const app = express()
+const jwt = require('jsonwebtoken')
 const port = 3000
 const Holdings = require ('./holdingsModel')
 const db = require('./db')
@@ -56,10 +54,8 @@ async function runSeed() {
 
 runSeed()
 
-// app.get('/', (req, res) => res.send(top10(data)))
-
 //all holdings
-app.get('/', async(req, res) => {
+app.get('/api', verifyToken, async(req, res) => {
   try{
     const holdings = await Holdings.findAll()
     res.send(holdings)
@@ -69,24 +65,31 @@ app.get('/', async(req, res) => {
   }
 })
 
-//specific single holding
+//specific single holding by id
 
-app.get('/:id',  async(req, res) => {
+app.get('/:id', verifyToken, async(req, res) => {
   try{
     const holding = await Holdings.findAll({
      where: {
        id: req.params.id
      }
     })
-    res.send(holding)
+    jwt.verify(req.token, 'ilovecorgis', (err, authData) => {
+      if(err){
+        res.sendStatus(403)
+      }else{
+        res.send({holding, authData})
+      }
+    })
   }
   catch(err){
     console.log(err)
   }
 })
 
+
 //get holding by ticker
-app.get('/ticker/:ticker',  async(req, res) => {
+app.get('/api/:ticker',  async(req, res) => {
   try{
     const holding = await Holdings.findAll({
      where: {
@@ -100,21 +103,38 @@ app.get('/ticker/:ticker',  async(req, res) => {
   }
 })
 
+app.post('/api/login', (req, res) => {
+  //mock user
+  const user = {
+    id: 1,
+    username: 'lisa',
+    email: 'lisaxjo@gmail.com'
+  }
+  jwt.sign({user}, "ilovecorgis", (err, token)=> {
+    res.json({
+      token
+    })
+  });
+})
 
-//get holdings by symbol
-// app.get('/:symbol',  async(req, res) => {
-//   try{
-//     const holdingBySymbol = await Holdings.findAll({
-//      where: {
-//        name: req.params.symbol
-//      }
-//     })
-//     res.send(holdingBySymbol )
-//   }
-//   catch(err){
-//     console.log(err)
-//   }
-// })
+//token format
+
+
+//verify middleware
+
+function verifyToken (req,res, next){
+  //get that token
+  const bearerHeader = req.headers['authorization'];
+  if(typeof bearerHeader !== 'undefined'){
+    const bearer = bearerHeader.split(' ')
+    const bearerToken = bearer[1]
+    req.token = bearerToken;
+    next();
+  }else{
+    res.sendStatus(403)
+  }
+}
+
 
 
 
