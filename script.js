@@ -1,7 +1,31 @@
+//harcoded data
 const xlsx = require("xlsx");
 let wb = xlsx.readFile("SPY_All_Holdings.xlsx")
 let ws = wb.Sheets['SPY_All_Holdings']
 let data = xlsx.utils.sheet_to_json(ws)
+//webscraping
+const rp = require('request-promise')
+const request = require('request')
+const cheerio = require('cheerio')
+const Table = require('cheerio')
+const options = {
+  url: 'https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY',
+  json: true
+}
+request('https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY', (error, response, html) => {
+  if(!error && response.statusCode == 200){
+    const $ = cheerio.load(html)
+    let rows = $('tr')
+    let arr = []
+    rows.each((i, el)=>{
+      const item = $(el).text().replace(/\s\s+/g, '')
+     // console.log(item)
+      arr.push(item)
+    })
+    console.log(arr.slice(106, 115))
+  }
+})
+
 const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
@@ -117,6 +141,8 @@ app.get('/api/:ticker', verifyToken, async(req, res) => {
   }
 })
 
+//create tokens that the user can use to access API
+//set them to expire in 30s
 app.post('/api/login', (req, res) => {
   //mock user
   const user = {
@@ -131,7 +157,6 @@ app.post('/api/login', (req, res) => {
   });
 })
 
-//token format
 
 
 //verify middleware
