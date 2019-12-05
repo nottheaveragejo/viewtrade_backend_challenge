@@ -14,7 +14,7 @@ const jwt = require('jsonwebtoken')
 const port = 3000
 const Holdings = require ('./holdingsModel')
 const db = require('./db')
-
+const holdingsData = require('./holdings.json')
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -72,19 +72,17 @@ let lastArr = []
     for(let i = 0; i< 10; i++){
       lastArr.push({name: finNameArr[i], ticker: tickerArr[i], weight: finDigArr[i], sector: sectorArr[i]})
     }
-    console.log(lastArr)
-    //write to CSV
+    // console.log(lastArr)
+    //write to JSON
     fs.writeFile(
       './holdings.json',
       JSON.stringify(lastArr),
       function (err) {
         if (err) {
-            console.error('Crap happens');
+            console.error('There was an error');
         }
     }
       )
-    // lastArr.forEach(function(v) { writeStream.write(`${v['name']} + ${v['ticker']} + ${v['weight']}+${v['sector']} + '\n'`); });
-    // return lastArr
   }
   console.log("done")
 })
@@ -95,7 +93,7 @@ async function seed() {
   await db.sync({force: true})
   console.log('db synced!')
   await Promise.all(
-    top10(data).map(element => {
+    holdingsData.map(element => {
       return Holdings.create(element)
     })
   )
