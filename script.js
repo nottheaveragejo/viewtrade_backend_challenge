@@ -1,8 +1,4 @@
-//hardcoded data
-const xlsx = require("xlsx");
-let wb = xlsx.readFile("SPY_All_Holdings.xlsx")
-let ws = wb.Sheets['SPY_All_Holdings']
-let data = xlsx.utils.sheet_to_json(ws)
+
 //webscraping to get the daily updates
 const rp = require('request-promise')
 const request = require('request')
@@ -20,17 +16,9 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//headers
-// writeStream.write(`lastArr \n`)
 
-let top10 = function (data){
-  let newData = []
-  for(let i = 3; i<=12; i++){
-    newData.push(data[i])
-  }
-  return newData
-}
 
+//Webscraping
 let lastArr = []
  request('https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY', (error, response, html) => {
   if(!error && response.statusCode == 200){
@@ -72,7 +60,6 @@ let lastArr = []
     for(let i = 0; i< 10; i++){
       lastArr.push({name: finNameArr[i], ticker: tickerArr[i], weight: finDigArr[i], sector: sectorArr[i]})
     }
-    // console.log(lastArr)
     //write to JSON
     fs.writeFile(
       './holdings.json',
