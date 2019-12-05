@@ -58,7 +58,14 @@ runSeed()
 app.get('/api', verifyToken, async(req, res) => {
   try{
     const holdings = await Holdings.findAll()
-    res.send(holdings)
+    // res.send(holdings)
+    jwt.verify(req.token, 'ilovecorgis', (err, authData) => {
+      if(err){
+        res.sendStatus(403)
+      }else{
+        res.send({holdings, authData})
+      }
+    })
   }
   catch(err){
     console.log(err)
@@ -96,6 +103,13 @@ app.get('/api/:ticker',  async(req, res) => {
        ticker: req.params.ticker
      }
     })
+    // jwt.verify(req.token, 'ilovecorgis', (err, authData) => {
+    //   if(err){
+    //     res.sendStatus(403)
+    //   }else{
+    //     res.send(holding)
+    //   }
+    // })
     res.send(holding)
   }
   catch(err){
@@ -110,7 +124,7 @@ app.post('/api/login', (req, res) => {
     username: 'lisa',
     email: 'lisaxjo@gmail.com'
   }
-  jwt.sign({user}, "ilovecorgis", (err, token)=> {
+  jwt.sign({user}, "ilovecorgis", { expiresIn: '15s' }, (err, token)=> {
     res.json({
       token
     })
