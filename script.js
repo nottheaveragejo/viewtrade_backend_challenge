@@ -7,6 +7,7 @@ let data = xlsx.utils.sheet_to_json(ws)
 const rp = require('request-promise')
 const request = require('request')
 const cheerio = require('cheerio')
+const fs = require('fs')
 const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
@@ -19,7 +20,8 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
+//headers
+// writeStream.write(`lastArr \n`)
 
 let top10 = function (data){
   let newData = []
@@ -70,13 +72,24 @@ let lastArr = []
     for(let i = 0; i< 10; i++){
       lastArr.push({name: finNameArr[i], ticker: tickerArr[i], weight: finDigArr[i], sector: sectorArr[i]})
     }
-      console.log(lastArr)
-    return lastArr
+    console.log(lastArr)
+    //write to CSV
+    fs.writeFile(
+      './holdings.json',
+      JSON.stringify(lastArr),
+      function (err) {
+        if (err) {
+            console.error('Crap happens');
+        }
+    }
+      )
+    // lastArr.forEach(function(v) { writeStream.write(`${v['name']} + ${v['ticker']} + ${v['weight']}+${v['sector']} + '\n'`); });
+    // return lastArr
   }
+  console.log("done")
 })
 
-console.log(lastArr)
-//console.log(lastArr)
+
 //console.log(top10(data))
 async function seed() {
   await db.sync({force: true})
