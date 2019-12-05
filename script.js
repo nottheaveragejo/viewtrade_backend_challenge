@@ -1,31 +1,13 @@
-//harcoded data
+//hardcoded data
 const xlsx = require("xlsx");
 let wb = xlsx.readFile("SPY_All_Holdings.xlsx")
 let ws = wb.Sheets['SPY_All_Holdings']
 let data = xlsx.utils.sheet_to_json(ws)
-//webscraping
+//webscraping to get the daily updates
 const rp = require('request-promise')
 const request = require('request')
 const cheerio = require('cheerio')
-const Table = require('cheerio')
-const options = {
-  url: 'https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY',
-  json: true
-}
-request('https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY', (error, response, html) => {
-  if(!error && response.statusCode == 200){
-    const $ = cheerio.load(html)
-    let rows = $('tr')
-    let arr = []
-    rows.each((i, el)=>{
-      const item = $(el).text().replace(/\s\s+/g, '')
-     // console.log(item)
-      arr.push(item)
-    })
-    console.log(arr.slice(106, 115))
-  }
-})
-
+let lastArr = []
 const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
@@ -48,7 +30,52 @@ let top10 = function (data){
   return newData
 }
 
-console.log(top10(data)[0])
+request('https://us.spdrs.com/etf/spdr-sp-500-etf-trust-SPY', (error, response, html) => {
+  if(!error && response.statusCode == 200){
+    const $ = cheerio.load(html)
+    let rows = $('tr')
+    let arr = []
+    let digitArr = []
+    let finDigArr = []
+    rows.each((i, el)=>{
+      const digit = $(el).text().replace(/\s\s+/g, '').match(/\d+/g)
+      const item = $(el).text().replace(/\s\s+/g, '').split(/[0-9]/)[0]
+     arr.push(item)
+      digitArr.push(digit)
+    })
+    digitArr.slice(105, 115).map((i) => finDigArr.push(Number(i.join('.'))))
+    let finNameArr = arr.slice(105, 115)
+    let sectorArr = [
+      'Information Technology',
+      'Information Technology',
+      'Consumer Discretionary',
+      'Communication Services',
+      'Financials',
+      'Financials',
+      'Communication Services',
+      'Communication Services',
+      'Health Care',
+      'Information Technology'
+    ]
+    let tickerArr = ['MSFT',
+      'AAPL',
+      'AMZN',
+      'FB',
+      'BRK.B',
+      'JPM',
+      'GOOG',
+      'GOOGL',
+      'JNJ',
+      'V']
+    for(let i = 0; i< 10; i++){
+      lastArr.push({name: finNameArr[i], ticker: tickerArr[i], weight: finDigArr[i], sector: sectorArr[i]})
+    }
+    console.log(lastArr)
+    return lastArr
+  }
+})
+
+console.log(top10(data))
 async function seed() {
   await db.sync({force: true})
   console.log('db synced!')
@@ -69,11 +96,6 @@ async function runSeed() {
     console.error(err)
     process.exitCode = 1
   }
-  // finally {
-  //   console.log('closing db connection')
-  //   await db.close()
-  //   console.log('db connection closed')
-  // }
 }
 
 runSeed()
@@ -82,7 +104,6 @@ runSeed()
 app.get('/api', verifyToken, async(req, res) => {
   try{
     const holdings = await Holdings.findAll()
-    // res.send(holdings)
     jwt.verify(req.token, 'ilovecorgis', (err, authData) => {
       if(err){
         res.sendStatus(403)
