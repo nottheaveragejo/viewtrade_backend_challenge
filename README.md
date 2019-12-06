@@ -5,4 +5,4 @@ This was done for a coding challenge. A API postman documentation as well as api
 PostMan:
 https://web.postman.co/collections/8409802-94797db3-6c33-4d47-b6d0-9fcc53381480?version=latest&workspace=c1982f35-5520-450f-8d2d-df22bdf4c1a1
 
-https://perfect-bulldog-9.localtunnel.m
+https://perfect-bulldog-9.localtunnel.me
