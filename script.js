@@ -75,7 +75,6 @@ let lastArr = []
 })
 
 
-//console.log(top10(data))
 async function seed() {
   await db.sync({force: true})
   console.log('db synced!')
@@ -101,6 +100,9 @@ async function runSeed() {
 runSeed()
 
 //all holdings
+app.get('/', async(req, res) => {
+  res.send('Hello')
+})
 app.get('/api', verifyToken, async(req, res) => {
   try{
     const holdings = await Holdings.findAll()
@@ -155,7 +157,6 @@ app.get('/api/:ticker', verifyToken, async(req, res) => {
         res.send({holding, authData})
       }
     })
-    //res.send(holding)
   }
   catch(err){
     console.log(err)
